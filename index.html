@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HANA Style Studio</title>\n<link rel="manifest" href="./manifest.webmanifest">\n<meta name="theme-color" content="#241B18">\n<link rel="icon" href="./icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#F1EFEB;--card:#FBFAF8;--ink:#241B18;--mute:#6F625B;--line:#DDD7CF;--sad:#7A4E32;--stitch:#B8862B;--ok:#2F5D4A;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1B1513;--card:#261E1B;--ink:#F0EAE4;--mute:#A99C93;--line:#3A2F2A;--sad:#D09A70;--stitch:#D9AE5A;--ok:#6FB59A;--on:#1B1513}}
+:root[data-theme="dark"]{--bg:#1B1513;--card:#261E1B;--ink:#F0EAE4;--mute:#A99C93;--line:#3A2F2A;--sad:#D09A70;--stitch:#D9AE5A;--ok:#6FB59A;--on:#1B1513}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 "Work Sans",system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+header{padding:18px 16px 12px;border-bottom:2px dashed var(--stitch);margin:0 12px}
+header b{font:700 26px "Fraunces",Georgia,serif;letter-spacing:.2px}
+header span{display:block;color:var(--mute);font-size:14px}
+#main{padding:14px 16px 110px;max-width:640px;margin:0 auto}
+h2{font:700 21px "Fraunces",Georgia,serif;margin:4px 0 10px}
+h3{font:600 15px "Work Sans",sans-serif;margin:20px 0 8px;color:var(--mute)}
+.mute{color:var(--mute);font-size:14px}
+.note{background:var(--card);border:1px dashed var(--stitch);border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px}
+.card{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 10px}
+.top{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--mute);margin-bottom:4px}
+.top .st{margin-left:auto;font-weight:600;color:var(--ink)}
+.pill{background:var(--sad);color:var(--on);border-radius:99px;padding:1px 9px;font-weight:600;font-size:12px}
+.h{font-weight:600}
+.btn{font:600 16px "Work Sans",sans-serif;min-height:48px;padding:0 18px;border-radius:10px;border:2px solid var(--sad);background:var(--sad);color:var(--on)}
+.btn.ghost{background:transparent;color:var(--sad)}
+.btn.full{width:100%}
+.row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.row>*{flex:1}
+label{display:block;font-size:14px;color:var(--mute);margin-top:10px}
+input,select,textarea{display:block;width:100%;min-height:46px;margin-top:4px;padding:10px;font:16px "Work Sans",sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi b{display:block;font:700 22px "Fraunces",Georgia,serif}
+.kpi span{font-size:13px;color:var(--mute)}
+.bar{height:8px;background:var(--line);border-radius:4px;margin:4px 0 10px}
+.bar i{display:block;height:100%;background:var(--sad);border-radius:4px}
+.good{color:var(--ok);font-weight:600}
+pre{white-space:pre-wrap;font:15px/1.5 "Work Sans",sans-serif;margin:0}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;min-height:58px;border:0;background:none;font:500 13px "Work Sans",sans-serif;color:var(--mute)}
+nav button.on{color:var(--sad);font-weight:600;box-shadow:inset 0 3px 0 var(--sad)}
+#sheet{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:flex-end;z-index:5}
+#sheet.open{display:flex}
+.panel{background:var(--card);width:100%;max-height:92%;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-width:640px;margin:0 auto}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:88px;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;display:none;z-index:9}
+.bad{color:#C0513F;font-weight:600}
+:focus-visible{outline:3px solid var(--stitch);outline-offset:2px}
+</style>
+</head>
+<body>
+<header><b>HANA Style</b><span id="sub">Studio</span></header>
+<div id="main"></div>
+<nav id="nav"></nav>
+<div id="sheet"></div>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const num=v=>+v||0;
+const dstr=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const fd=d=>d?new Date(d+'T00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'}):'';
+const CUR='تومان';
+const nd=s=>String(s).replace(/[۰-۹]/g,c=>c.charCodeAt(0)-1776).replace(/[٠-٩]/g,c=>c.charCodeAt(0)-1632).replace(/٫/g,'.').replace(/[٬،,\s]/g,'');
+const NF=new Intl.NumberFormat('fa-IR',{maximumFractionDigits:0});
+const money=n=>'<bdi>'+NF.format(Math.round(num(n)))+' '+CUR+'</bdi>';
+const KEY='hana-style-v1';
+let canSave=true,S,tab='plan',gen=null,scr=null,ai='',aiOn=false,sel={p:'',g:'making',f:'Reel'};
+
+function seed(){const mk=(id,name,price,stock,l,h,t,w,o)=>{const c={leather:l,hardware:h,thread:t,labor:w,other:o};return{id,name,price,stock,costs:c,cost:tot(c)}};return{sample:true,cur:'toman',v:2,
+products:[mk('p1','Card holder',2200000,12,350000,50000,60000,300000,140000),mk('p2','Bifold wallet',4500000,6,800000,200000,100000,700000,200000),mk('p3','Key fob',1000000,20,100000,80000,30000,120000,70000)],
+posts:[{id:'c1',type:'Reel',date:dstr(2),status:'Planned',title:'Making a card holder in 30 seconds',caption:'',reach:'',likes:'',saves:'',comments:'',clicks:''},
+{id:'c2',type:'Story',date:dstr(1),status:'Planned',title:'Poll: which colour next?',caption:'',reach:'',likes:'',saves:'',comments:'',clicks:''},
+{id:'c3',type:'Reel',date:dstr(-6),status:'Posted',title:'Edge burnishing close-up',caption:'',reach:2400,likes:180,saves:64,comments:9,clicks:21},
+{id:'c4',type:'Post',date:dstr(-3),status:'Posted',title:'Bifold wallet flat lay',caption:'',reach:1100,likes:95,saves:12,comments:4,clicks:7}],
+orders:[{id:'o1',date:dstr(-4),customer:'Anna K.',product:'p2',qty:1,price:4500000,cost:2000000,status:'Shipped',source:'Instagram'},
+{id:'o2',date:dstr(-1),customer:'Market stall',product:'p1',qty:3,price:2200000,cost:900000,status:'Done',source:'Market'}]}}
+const CK=['leather','hardware','thread','labor','other'];
+const tot=c=>CK.reduce((s,k)=>s+num(c&&c[k]),0);
+function migrate(d){d.v=2;(d.products||[]).forEach(p=>{if(!p.costs)p.costs={leather:0,hardware:0,thread:0,labor:0,other:num(p.cost)};p.cost=tot(p.costs)});return d}
+const hasOld=()=>{try{return !!localStorage.getItem(KEY+'-pre-toman')}catch(e){return false}};
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(!d.v){try{if(!localStorage.getItem(KEY+'-pre-toman'))localStorage.setItem(KEY+'-pre-toman',r)}catch(e){}}return migrate(d)}}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));canSave=true}catch(e){canSave=false}}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',2200)}
+function upsert(k,o){const a=S[k],i=a.findIndex(x=>x.id===o.id);i<0?a.push(o):a[i]=o;save();closeSheet();render()}
+function del(k,id){const n=S[k].length;S[k]=S[k].filter(x=>x.id!==id);const ok=S[k].length<n;save();closeSheet();render();toast(!ok?'Nothing was deleted: item not found':canSave?'Deleted':'Deleted, but this browser could not save the change')}
+function closeSheet(){$('#sheet').classList.remove('open')}
+function askSheet(t,h,ok,fn){$('#sheet').innerHTML=`<div class="panel" role="dialog" aria-label="${esc(t)}"><h2>${esc(t)}</h2>${h}<div class="row"><button class="btn" id="ok">${esc(ok)}</button><button class="btn ghost" id="cx">Cancel</button></div></div>`;$('#sheet').classList.add('open');$('#cx').onclick=closeSheet;$('#ok').onclick=fn}
+const SMP={products:{p1:'Card holder',p2:'Bifold wallet',p3:'Key fob'},posts:{c1:'Making a card holder in 30 seconds',c2:'Poll: which colour next?',c3:'Edge burnishing close-up',c4:'Bifold wallet flat lay'},orders:{o1:'Anna K.',o2:'Market stall'}};
+const isSample=(k,o)=>SMP[k][o.id]!==undefined&&SMP[k][o.id]===(k==='products'?o.name:k==='posts'?o.title:o.customer);
+function samplePlan(){const used=new Set(S.orders.filter(o=>!isSample('orders',o)).map(o=>o.product));const sp=S.products.filter(p=>isSample('products',p));return{products:sp.filter(p=>!used.has(p.id)),keptP:sp.filter(p=>used.has(p.id)),posts:S.posts.filter(p=>isSample('posts',p)),orders:S.orders.filter(o=>isSample('orders',o))}}
+
+function sheet(title,fields,vals,onSave,onDel,onInput){
+  const fh=f=>{const v=esc(vals[f.k]);
+    if(f.t==='area')return `<textarea id="f_${f.k}" rows="3">${v}</textarea>`;
+    if(f.t==='select')return `<select id="f_${f.k}">${f.o.map(o=>{const[a,b]=Array.isArray(o)?o:[o,o];return `<option value="${esc(a)}"${a==vals[f.k]?' selected':''}>${esc(b)}</option>`}).join('')}</select>`;
+    return f.t==='number'?`<input id="f_${f.k}" type="text" inputmode="numeric" autocomplete="off" value="${v}">`:`<input id="f_${f.k}" type="${f.t||'text'}" value="${v}">`};
+  $('#sheet').innerHTML=`<div class="panel" role="dialog" aria-label="${esc(title)}"><h2>${esc(title)}</h2>${fields.map(f=>f.t==='info'?'<div id="live" class="note"></div>':`<label>${f.l}${fh(f)}</label>`).join('')}<div class="row"><button class="btn" id="sv">Save</button>${onDel?'<button class="btn ghost" id="dl">Delete</button>':''}<button class="btn ghost" id="cx">Cancel</button></div></div>`;
+  $('#sheet').classList.add('open');
+  $('#cx').onclick=closeSheet;
+  if(onInput){$('#sheet .panel').addEventListener('input',onInput);onInput()}
+  $('#sv').onclick=()=>{const v={};fields.forEach(f=>{if(f.t==='info')return;const x=$('#f_'+f.k).value;v[f.k]=f.t==='number'?(x===''?'':num(nd(x))):x});onSave(v)};
+  if(onDel)$('#dl').onclick=()=>{const what=String(title).replace(/^(Edit|New) /,'');askSheet('Delete '+what+'?','<p>This '+esc(what)+' will be deleted. This cannot be undone.</p>','Delete',()=>{try{onDel()}catch(e){closeSheet();toast('Could not delete. Nothing was changed.')}})};
+}
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')closeSheet()});
+
+const TYPES=['Reel','Post','Story'],STAT=['Idea','Planned','Posted'],OST=['New','Making','Shipped','Done','Cancelled'],SRC=['Instagram','Direct message','Market','Website','Other'];
+function postSheet(id){const p=S.posts.find(x=>x.id===id)||{id:uid(),type:'Reel',date:dstr(0),status:'Planned',title:'',caption:'',reach:'',likes:'',saves:'',comments:'',clicks:''};
+  sheet(id?'Edit content':'New content',[{k:'title',l:'Idea or title'},{k:'type',l:'Format',t:'select',o:TYPES},{k:'date',l:'Date',t:'date'},{k:'status',l:'Status',t:'select',o:STAT},{k:'caption',l:'Caption or notes',t:'area'},
+  {k:'reach',l:'Reach (after posting)',t:'number'},{k:'likes',l:'Likes',t:'number'},{k:'saves',l:'Saves',t:'number'},{k:'comments',l:'Comments',t:'number'},{k:'clicks',l:'Link clicks',t:'number'}],p,
+  v=>{if(!v.title.trim())return toast('Add a title first');upsert('posts',{...p,...v})},id?()=>del('posts',p.id):null)}
+function prodSheet(id){const p=S.products.find(x=>x.id===id)||{id:uid(),name:'',price:'',stock:'',costs:{}};
+  const vals={...p};CK.forEach(k=>vals['c_'+k]=(p.costs||{})[k]||'');
+  const L=[['leather','Leather'],['hardware','Hardware'],['thread','Thread and consumables'],['labor','Labor'],['other','Other expenses']];
+  const F=[{k:'name',l:'Product name'},{k:'price',l:'Selling price ('+CUR+')',t:'number'},...L.map(([k,l])=>({k:'c_'+k,l:l+' ('+CUR+')',t:'number'})),{k:'live',t:'info'},{k:'stock',l:'In stock',t:'number'}];
+  const g=k=>num(nd($('#f_'+k).value));
+  const live=()=>{const t=CK.reduce((s,k)=>s+g('c_'+k),0),pr=g('price'),f=pr-t;$('#live').innerHTML=`Total cost <b>${money(t)}</b><br>Profit <b class="${f<0?'bad':'good'}">${money(f)}</b> · Margin <b>${pr?Math.round(f/pr*100):0}%</b>`};
+  sheet(id?'Edit product':'New product',F,vals,
+  v=>{if(!v.name.trim())return toast('Add a product name first');const c={};CK.forEach(k=>c[k]=num(v['c_'+k]));upsert('products',{...p,name:v.name,price:v.price,stock:v.stock,costs:c,cost:tot(c)})},id?()=>del('products',p.id):null,live)}
+function orderSheet(id){if(!S.products.length)return toast('Add a product first');
+  const o=S.orders.find(x=>x.id===id)||{id:uid(),date:dstr(0),customer:'',product:S.products[0].id,qty:1,price:'',status:'New',source:'Instagram'};
+  sheet(id?'Edit order':'New order',[{k:'customer',l:'Customer'},{k:'product',l:'Product',t:'select',o:S.products.map(p=>[p.id,p.name])},{k:'qty',l:'Quantity',t:'number'},{k:'price',l:'Price each (blank = product price)',t:'number'},{k:'status',l:'Status',t:'select',o:OST},{k:'source',l:'Where did it come from?',t:'select',o:SRC},{k:'date',l:'Date',t:'date'}],o,
+  v=>{const p=S.products.find(x=>x.id===v.product);upsert('orders',{...o,...v,qty:v.qty||1,price:v.price===''?num(p.price):v.price,cost:o.cost!==undefined&&id?o.cost:num(p.cost)})},id?()=>del('orders',o.id):null)}
+
+const prod=id=>S.products.find(p=>p.id===id)||{name:'(deleted product)'};
+const live=o=>o.status!=='Cancelled';
+const VIEWS={
+plan(){const a=[...S.posts].sort((x,y)=>(x.status==='Posted')-(y.status==='Posted')||(x.status==='Posted'?y.date.localeCompare(x.date):x.date.localeCompare(y.date)));
+  const n=S.posts.filter(p=>p.status!=='Posted').length;
+  return `<h2>Content plan</h2><p class="mute">${n} to make or post · ${S.posts.length-n} posted</p><button class="btn full" data-a="newPost">Add Post, Reel or Story</button><div style="height:12px"></div>`+
+  (a.map(p=>`<button class="card" data-a="editPost" data-id="${p.id}"><div class="top"><span class="pill">${p.type}</span><span>${fd(p.date)}</span><span class="st">${p.status}</span></div><div class="h">${esc(p.title)}</div>${p.status==='Posted'?`<div class="mute">${num(p.reach).toLocaleString()} reach · ${num(p.likes)} likes · ${num(p.saves)} saves · ${num(p.clicks)} clicks</div>`:''}</button>`).join('')||'<p class="mute">Nothing planned yet. Add your first idea, or use the Ideas tab to get some.</p>')},
+products(){return `<h2>Products</h2>${S.cur!=='toman'&&S.products.length?'<div class="note">Your saved amounts were entered in euros. Convert them once, after making a backup.<button class="btn ghost full" style="margin-top:8px" data-a="conv">Convert euro amounts to tomans</button></div>':''}<button class="btn full" data-a="newProd">Add product</button><div style="height:12px"></div>`+
+  (S.products.map(p=>{const pr=num(p.price)-num(p.cost),m=p.price?Math.round(pr/p.price*100):0;
+  return `<button class="card" data-a="editProd" data-id="${p.id}"><div class="top"><span class="h" style="color:var(--ink);font-size:16px">${esc(p.name)}</span><span class="st">${money(p.price)}</span></div><div class="mute">Cost ${money(p.cost)} · Profit <span class="${pr<0?'bad':'good'}">${money(pr)}</span> (${m}%) · ${num(p.stock)} in stock</div></button>`}).join('')||'<p class="mute">Add your first product to start tracking prices and profit.</p>')},
+orders(){const a=[...S.orders].sort((x,y)=>y.date.localeCompare(x.date));
+  return `<h2>Orders</h2><button class="btn full" data-a="newOrder">Add order</button><div style="height:12px"></div>`+
+  (a.map(o=>`<button class="card" data-a="editOrder" data-id="${o.id}"><div class="top"><span>${fd(o.date)}</span><span>${esc(o.source)}</span><span class="st">${o.status}</span></div><div class="h">${esc(o.customer)||'Customer'}: ${num(o.qty)} × ${esc(prod(o.product).name)}</div><div class="mute">${money(num(o.qty)*num(o.price))} total</div></button>`).join('')||'<p class="mute">No orders yet.</p>')},
+ideas(){const names=S.products.map(p=>p.name);
+  const gl=[['making','Show the making'],['proof','Social proof'],['teach','Teach something'],['sell','Announce or sell']];
+  return `<h2>Ideas and Reel scripts</h2><label>Product<select data-v="p">${names.map(n=>`<option${n===sel.p?' selected':''}>${esc(n)}</option>`).join('')}<option value=""${sel.p===''?' selected':''}>HANA Style in general</option></select></label>
+  <label>Goal<select data-v="g">${gl.map(([k,l])=>`<option value="${k}"${k===sel.g?' selected':''}>${l}</option>`).join('')}</select></label>
+  <label>Format<select data-v="f">${TYPES.map(t=>`<option${t===sel.f?' selected':''}>${t}</option>`).join('')}</select></label>
+  <div class="row"><button class="btn" data-a="gen">Get ideas</button>${aiOn?'<button class="btn ghost" data-a="ask">Ask Claude</button>':''}</div>`+
+  (gen?`<h3>Ideas</h3>`+gen.map((g,i)=>`<div class="card"><div class="h">${esc(g.title)}</div><div class="row"><button class="btn ghost" data-a="addIdea" data-id="${i}">Add to plan</button><button class="btn ghost" data-a="script" data-id="${i}">Write script</button></div></div>`).join(''):'')+
+  (scr?`<h3>Script</h3><div class="card"><pre>${esc(scr)}</pre></div>`:'')+(ai?`<h3>From Claude</h3><div class="card"><pre>${esc(ai)}</pre></div>`:'')},
+results(){const po=S.posts.filter(p=>p.status==='Posted'),or=S.orders.filter(live);
+  const sm=k=>po.reduce((s,p)=>s+num(p[k]),0),reach=sm('reach'),eng=reach?((sm('likes')+sm('saves')+sm('comments'))/reach*100).toFixed(1):'0.0';
+  const rev=or.reduce((s,o)=>s+num(o.qty)*num(o.price),0),prof=or.reduce((s,o)=>s+num(o.qty)*(num(o.price)-num(o.cost)),0);
+  const top=[...po].sort((a,b)=>num(b.saves)-num(a.saves)).slice(0,3);
+  const src={};or.forEach(o=>src[o.source]=(src[o.source]||0)+num(o.qty)*num(o.price));
+  const mx=Math.max(1,...Object.values(src));
+  const units={};or.forEach(o=>{const n=prod(o.product).name;units[n]=(units[n]||0)+num(o.qty)});
+  const bs=Object.entries(units).sort((a,b)=>b[1]-a[1])[0];
+  return `<h2>Results</h2><h3>Content</h3><div class="kpis"><div class="kpi"><b>${po.length}</b><span>Posted</span></div><div class="kpi"><b>${reach.toLocaleString()}</b><span>Total reach</span></div><div class="kpi"><b>${sm('saves')}</b><span>Saves</span></div><div class="kpi"><b>${eng}%</b><span>Engagement</span></div></div>
+  <h3>Best content by saves</h3>${top.map(p=>`<div class="card"><div class="top"><span class="pill">${p.type}</span><span class="st">${num(p.saves)} saves</span></div><div class="h">${esc(p.title)}</div></div>`).join('')||'<p class="mute">Mark content as Posted and add numbers to see this.</p>'}
+  <h3>Sales</h3><div class="kpis"><div class="kpi"><b>${money(rev)}</b><span>Revenue</span></div><div class="kpi"><b class="good">${money(prof)}</b><span>Profit</span></div><div class="kpi"><b>${or.length}</b><span>Orders</span></div><div class="kpi"><b>${bs?esc(bs[0]):'-'}</b><span>Best seller</span></div></div>
+  <h3>Revenue by source</h3>${Object.entries(src).map(([k,v])=>`<div>${esc(k)} <span class="mute">${money(v)}</span></div><div class="bar"><i style="width:${v/mx*100}%"></i></div>`).join('')||'<p class="mute">No orders yet.</p>'}
+  <h3>Your data</h3><p class="mute">${canSave?'Saved automatically on this browser and device only.':'Saving is blocked in this browser, so data will be lost when you close the page.'} Back up regularly.</p>
+  <textarea id="bk" rows="3" placeholder="Backup text appears here. To restore, paste it here."></textarea>
+  <div class="row"><button class="btn ghost" data-a="bkShow">Show backup</button><button class="btn ghost" data-a="bkRestore">Restore</button></div>
+  ${hasOld()?'<div class="row"><button class="btn ghost" data-a="bkOld">Show pre-update copy</button></div>':''}
+  ${S.sample?'<div class="row"><button class="btn ghost" data-a="clearSample">Clear sample data</button></div>':''}`}
+};
+
+const GOALS={
+making:p=>['How a flat piece of leather becomes your '+p,'One stitch at a time: the making of the '+p,'Cut, burnish, stitch: the '+p+' in 30 seconds'],
+proof:p=>['A customer’s '+p+' after a year of daily use','Unboxing the '+p+' (real reaction)','Why people come back for a second '+p],
+teach:p=>['3 signs of real leather and how to spot fake','How to care for your '+p+' so it lasts decades','What patina is and why your '+p+' gets better with age'],
+sell:p=>['New in the shop: the '+p,'Three ways to carry your '+p,'Last few '+p+' pieces, ready to ship']};
+const CTA={making:'Want one made for you? Message me or tap the link in bio.',proof:'Tell me how long you’ve had yours. Comment below.',teach:'Save this for later and send it to someone who loves leather.',sell:'Available now. Link in bio, or send me a message to order.'};
+function pname(){return sel.p||'piece'}
+function script(i){const t=gen[i].title,p=pname().toLowerCase();
+  return `${gen[i].type}: ${t}\n\nHOOK (0–3s)\nClose-up of the raw leather with on-screen text: “${t}”.\n\nSHOTS\n1. Raw leather and the pattern (3–8s)\n2. Cutting or marking, with the sound of the knife (8–14s)\n3. Stitching and edge burnishing, fast cuts (14–22s)\n4. Reveal of the finished ${p} in natural light (22–27s)\n5. Held in hand, text: “Handmade by HANA Style” (27–30s)\n\nCAPTION\n${t}. Handmade in small batches, built to last.\n${CTA[sel.g]}\n\n#handmadeleather #leathergoods #slowmade #HANAStyle`}
+
+const ACT={
+tab:id=>{tab=id;render();window.scrollTo(0,0)},
+newPost:()=>postSheet(),editPost:id=>postSheet(id),newProd:()=>prodSheet(),editProd:id=>prodSheet(id),newOrder:()=>orderSheet(),editOrder:id=>orderSheet(id),
+gen:()=>{gen=GOALS[sel.g](pname().toLowerCase()).map(t=>({title:t,type:sel.f}));scr=null;ai='';render()},
+addIdea:i=>{S.posts.push({id:uid(),type:gen[i].type,date:dstr(1),status:'Idea',title:gen[i].title,caption:'',reach:'',likes:'',saves:'',comments:'',clicks:''});save();toast('Added to your plan')},
+script:i=>{scr=script(i);render()},
+ask:async()=>{try{const s=await claude.use('sample');ai='Thinking…';render();
+  const r=await s(`You help HANA Style, a small handmade leather goods brand. Write 4 Instagram ${sel.f} ideas about "${sel.p||'the brand in general'}" with the goal "${sel.g}". For each give a hook line, 3 to 5 shots, and a short caption with a call to action. Plain text, short, warm tone.`,{modelTier:'quick',cache:false});
+  ai=r.text;render()}catch(e){ai='Claude could not answer right now. Try again later.';render()}},
+bkShow:()=>{const t=$('#bk');t.value=JSON.stringify(S);t.focus();t.select();toast('Copy this text and keep it somewhere safe')},
+bkRestore:()=>{try{const d=JSON.parse($('#bk').value);if(!d.posts||!d.products||!d.orders)throw 0;
+  askSheet('Restore backup','<p>This will replace the records currently in this app with the backup you pasted. Your original Claude app will not be affected.</p>','Restore backup',()=>{
+    S=migrate(d);save();closeSheet();render();toast(canSave?'Backup restored':'Restored, but browser storage may be unavailable');
+  });
+}catch(e){toast('Paste a valid backup first')} },
+bkOld:()=>{try{$('#bk').value=localStorage.getItem(KEY+'-pre-toman')||'';$('#bk').select();toast('Copy this, then use Restore if needed')}catch(e){}},
+conv:()=>{askSheet('Convert saved amounts','<p>Enter how many tomans equal 1 euro. This conversion changes all product and order amounts in this app.</p><label>Tomans per euro<input id="rate" type="text" inputmode="numeric" placeholder="For example: 700000"></label>','Continue',()=>{
+  const r=num(nd($('#rate').value));if(r<=0){toast('Enter a valid exchange rate');return}
+  const x=v=>Math.round(num(v)*r);S.products.forEach(p=>{p.price=x(p.price);CK.forEach(k=>p.costs[k]=x(p.costs[k]));p.cost=tot(p.costs)});S.orders.forEach(o=>{o.price=x(o.price);o.cost=x(o.cost)});S.cur='toman';save();closeSheet();render();toast('Converted to tomans')
+})},
+clearSample:()=>{const pl=samplePlan(),n=pl.products.length+pl.posts.length+pl.orders.length;
+  if(!n){S.sample=false;S.sampleCleared=true;save();render();return toast('No sample records found. Sample mode is now off.')}
+  askSheet('Clear sample data',`<p>This removes only the built-in sample records: ${pl.posts.length} content items, ${pl.products.length} products and ${pl.orders.length} orders. Everything you added yourself stays.${pl.keptP.length?' '+pl.keptP.length+' sample product(s) are kept because your own orders use them.':''}</p><p class="mute">A safety copy of your data is saved first.</p>`,'Remove sample data',()=>{
+    try{localStorage.setItem(KEY+'-pre-clear',JSON.stringify(S))}catch(e){return toast('Could not save a safety copy. Nothing was removed.')}
+    const ids=k=>new Set(pl[k].map(x=>x.id)),P=ids('products'),C=ids('posts'),O=ids('orders');
+    S.products=S.products.filter(x=>!P.has(x.id));S.posts=S.posts.filter(x=>!C.has(x.id));S.orders=S.orders.filter(x=>!O.has(x.id));
+    S.sample=false;S.sampleCleared=true;
+    if(sel.p&&!S.products.some(p=>p.name===sel.p))sel.p=(S.products[0]||{}).name||'';
+    save();closeSheet();render();
+    toast(canSave?'Sample data removed. Your own records were kept.':'Removed, but this browser could not save the change.')})}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)ACT[b.dataset.a](b.dataset.id)});
+document.addEventListener('change',e=>{const v=e.target.dataset.v;if(v)sel[v]=e.target.value});
+
+const TABS=[['plan','Plan'],['products','Products'],['orders','Orders'],['ideas','Ideas'],['results','Results']];
+function render(){
+  $('#nav').innerHTML=TABS.map(([k,l])=>`<button data-a="tab" data-id="${k}" class="${k===tab?'on':''}">${l}</button>`).join('');
+  $('#sub').textContent=S.sample?'Studio · sample data, clear it in Results':'Studio';
+  $('#main').innerHTML=VIEWS[tab]();
+}
+S=load();if(!S.products)S=seed();sel.p=(S.products[0]||{}).name||'';save();render();
+claude_init();
+function claude_init(){try{window.claude&&window.claude.use('sample').then(s=>{if(s){aiOn=true;if(tab==='ideas')render()}}).catch(()=>{})}catch(e){}}
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
